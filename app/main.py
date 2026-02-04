@@ -13,12 +13,27 @@ from aiogram.fsm.context import FSMContext
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
 
-# Пытаемся импортировать улучшенную базу знаний
+# Пытаемся импортировать базу знаний
 try:
-    from app.ai.advanced_core import get_knowledge_base
-    kb = get_knowledge_base()
+    # Сначала пробуем легкую версию
+    from app.ai.core_light import KnowledgeBase
+    kb = KnowledgeBase()
     AI_ENABLED = True
-    logging.info("✅ База знаний загружена")
+    logging.info("✅ Облегченная база знаний загружена")
+    
+    # Проверяем, есть ли документы
+    from pathlib import Path
+    data_dir = Path(__file__).parent.parent / "data" / "texts"
+    if data_dir.exists():
+        files = list(data_dir.glob("*.txt"))
+        if files:
+            kb.load_documents(files[:2])  # Загружаем первые 2 файла
+            logging.info(f"📚 Загружено документов: {kb.get_document_count()}")
+        else:
+            logging.warning("⚠️ Нет текстовых файлов в data/texts/")
+    else:
+        logging.warning("⚠️ Папка data/texts/ не найдена")
+        
 except ImportError as e:
     logging.warning(f"❌ Не удалось загрузить базу знаний: {e}")
     logging.warning("Бот будет работать в простом режиме")
